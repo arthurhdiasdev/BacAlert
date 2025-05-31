@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 st.title("Dashboard de Surtos de Bactérias no Hospital")
 
@@ -19,7 +18,7 @@ if arquivo:
     st.subheader("Histograma do Tempo de Internação")
     if 'Tempo_Internacao' in df.columns:
         fig1, ax1 = plt.subplots()
-        df['Tempo_Internacao'].hist(bins=20, ax=ax1)
+        ax1.hist(df['Tempo_Internacao'].dropna(), bins=20)
         ax1.set_xlabel('Tempo de Internação (dias)')
         ax1.set_ylabel('Frequência')
         st.pyplot(fig1)
@@ -29,12 +28,12 @@ if arquivo:
     # Dashboard 2: Número de surtos por bactéria
     st.subheader("Número de surtos por bactéria")
     if 'Bactéria' in df.columns:
-        contagem_bact = df['Bactéria'].value_counts()
+        contagem_bact = df['Bactéria'].dropna().value_counts()
         fig2, ax2 = plt.subplots(figsize=(8,4))
-        sns.barplot(x=contagem_bact.index, y=contagem_bact.values, ax=ax2)
+        ax2.bar(contagem_bact.index, contagem_bact.values)
         ax2.set_xlabel('Bactéria')
         ax2.set_ylabel('Número de surtos')
-        ax2.set_xticklabels(ax2.get_xticklabels(), rotation=45, ha='right')
+        ax2.tick_params(axis='x', rotation=45)
         st.pyplot(fig2)
     else:
         st.warning("Coluna 'Bactéria' não encontrada.")
@@ -42,12 +41,12 @@ if arquivo:
     # Dashboard 3: Casos por unidade hospitalar
     st.subheader("Casos por unidade hospitalar")
     if 'Unidade' in df.columns:
-        casos_unidade = df['Unidade'].value_counts()
+        casos_unidade = df['Unidade'].dropna().value_counts()
         fig3, ax3 = plt.subplots(figsize=(8,4))
-        sns.barplot(x=casos_unidade.index, y=casos_unidade.values, ax=ax3)
+        ax3.bar(casos_unidade.index, casos_unidade.values)
         ax3.set_xlabel('Unidade Hospitalar')
         ax3.set_ylabel('Número de casos')
-        ax3.set_xticklabels(ax3.get_xticklabels(), rotation=45, ha='right')
+        ax3.tick_params(axis='x', rotation=45)
         st.pyplot(fig3)
     else:
         st.warning("Coluna 'Unidade' não encontrada.")
@@ -58,9 +57,10 @@ if arquivo:
         df['Data_Coleta'] = pd.to_datetime(df['Data_Coleta'], errors='coerce')
         casos_tempo = df.groupby('Data_Coleta').size().reset_index(name='Casos')
         fig4, ax4 = plt.subplots(figsize=(10,4))
-        sns.lineplot(data=casos_tempo, x='Data_Coleta', y='Casos', ax=ax4)
+        ax4.plot(casos_tempo['Data_Coleta'], casos_tempo['Casos'], marker='o')
         ax4.set_xlabel('Data da Coleta')
         ax4.set_ylabel('Número de casos')
+        plt.xticks(rotation=45)
         st.pyplot(fig4)
     else:
         st.warning("Coluna 'Data_Coleta' não encontrada.")
