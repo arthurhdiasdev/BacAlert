@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 st.set_page_config(page_title="Dashboard de Surtos de Bactérias", layout="centered")
 
@@ -24,7 +23,7 @@ if arquivo:
         col1, col2 = st.columns([2, 1])
         with col1:
             fig1, ax1 = plt.subplots(figsize=(7, 3))
-            sns.histplot(df['Tempo_Internacao'].dropna(), bins=20, kde=True, color="#222", ax=ax1)
+            ax1.hist(df['Tempo_Internacao'].dropna(), bins=20, color="#222", alpha=0.8)
             ax1.set_xlabel('Tempo de Internação (dias)')
             ax1.set_ylabel('Frequência')
             ax1.grid(axis='y', linestyle='--', alpha=0.3)
@@ -41,7 +40,7 @@ if arquivo:
     if 'Bactéria' in df.columns:
         contagem_bact = df['Bactéria'].dropna().value_counts()
         fig2, ax2 = plt.subplots(figsize=(8, 3.5))
-        sns.barplot(x=contagem_bact.values, y=contagem_bact.index, palette="Greys", ax=ax2)
+        ax2.barh(contagem_bact.index, contagem_bact.values, color="#444", alpha=0.8)
         ax2.set_xlabel('Número de surtos')
         ax2.set_ylabel('Bactéria')
         ax2.grid(axis='x', linestyle='--', alpha=0.2)
@@ -54,7 +53,7 @@ if arquivo:
     if 'Unidade' in df.columns:
         casos_unidade = df['Unidade'].dropna().value_counts()
         fig3, ax3 = plt.subplots(figsize=(8, 3.5))
-        sns.barplot(x=casos_unidade.values, y=casos_unidade.index, palette="binary", ax=ax3)
+        ax3.barh(casos_unidade.index, casos_unidade.values, color="#888", alpha=0.8)
         ax3.set_xlabel('Número de casos')
         ax3.set_ylabel('Unidade Hospitalar')
         ax3.grid(axis='x', linestyle='--', alpha=0.2)
@@ -69,7 +68,7 @@ if arquivo:
         casos_tempo = df.groupby('Data_Coleta').size().reset_index(name='Casos')
         casos_tempo = casos_tempo.sort_values('Data_Coleta')
         fig4, ax4 = plt.subplots(figsize=(10, 3.5))
-        sns.lineplot(x='Data_Coleta', y='Casos', data=casos_tempo, marker='o', color="#222", ax=ax4)
+        ax4.plot(casos_tempo['Data_Coleta'], casos_tempo['Casos'], marker='o', color="#222")
         ax4.set_xlabel('Data da Coleta')
         ax4.set_ylabel('Número de casos')
         ax4.grid(axis='y', linestyle='--', alpha=0.2)
