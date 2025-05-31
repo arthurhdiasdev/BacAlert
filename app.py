@@ -1,14 +1,13 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 
-# Título do app
-st.title("Análise de Dados") 
+st.title("Dashboard de Surtos de Bactérias no Hospital")
 
-# Upload de arquivo
-arquivo = st.file_uploader("envie aqui seu arquivo .xlsx", type=["xlsx"])
+arquivo = st.file_uploader("Faça upload da tabela Excel", type=["xlsx", "xls"])
 
-if arquivo is not None:
+if arquivo:
     df = pd.read_excel(arquivo)
     st.write("Dados carregados:")
     st.dataframe(df)
