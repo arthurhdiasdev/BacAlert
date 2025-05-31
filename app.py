@@ -1,78 +1,198 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
+from datetime import datetime, timedelta
+import plotly.express as px
+import plotly.graph_objects as go
+from io import BytesIO
 
-st.set_page_config(page_title="Dashboard de Surtos de Bactérias", layout="centered")
+# Configuração da página
+st.set_page_config(
+    page_title="BacAlert - Monitoramento de Surtos Bacterianos",
+    page_icon="🦠",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-st.title("Dashboard de Surtos de Bactérias no Hospital")
+# Estilo personalizado
+st.markdown("""
+    <style>
+    .main {
+        padding: 2rem;
+    }
+    .stAlert {
+        padding: 1rem;
+        border-radius: 0.5rem;
+    }
+    .metric-card {
+        background-color: #f0f2f6;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: 0.5rem 0;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-arquivo = st.file_uploader("Faça upload da tabela Excel", type=["xlsx", "xls"])
+# Título e descrição
+st.title("🦠 BacAlert - Monitoramento de Surtos Bacterianos")
+st.markdown("""
+    Sistema de monitoramento e alerta para surtos bacterianos em ambiente hospitalar.
+    Faça upload dos dados para visualizar dashboards e gerar alertas.
+""")
 
-if arquivo:
-    df = pd.read_excel(arquivo)
-    st.success("Arquivo carregado com sucesso!")
-    st.write("### Dados carregados")
-    st.dataframe(df, use_container_width=True)
+# Sidebar para filtros e configurações
+with st.sidebar:
+    st.header("Configurações")
+    st.markdown("---")
+    
+    # Upload do arquivo
+    arquivo = st.file_uploader("Upload da tabela Excel", type=["xlsx", "xls"])
+    
+    if arquivo:
+        try:
+            df = pd.read_excel(arquivo)
+            st.success("✅ Arquivo carregado com sucesso!")
+            
+            # Filtros
+            st.subheader("Filtros")
+            
+            # Filtro por data
+            if 'Data_Coleta' in df.columns:
+                df['Data_Coleta'] = pd.to_datetime(df['Data_Coleta'], errors='coerce')
+                data_inicio = st.date_input(
+                    "Data inicial",
+                    value=df['Data_Coleta'].min().date()
+                )
+                data_fim = st.date_input(
+                    "Data final",
+                    value=df['Data_Coleta'].max().date()
+                )
+                df = df[(df['Data_Coleta'].dt.date >= data_inicio) & 
+                       (df['Data_Coleta'].dt.date <= data_fim)]
+            
+            # Filtro por bactéria
+            if 'Bactéria' in df.columns:
+                bacterias = ['Todas'] + sorted(df['Bactéria'].unique().tolist())
+                bacteria_selecionada = st.selectbox("Bactéria", bacterias)
+                if bacteria_selecionada != 'Todas':
+                    df = df[df['Bactéria'] == bacteria_selecionada]
+            
+            # Filtro por unidade
+            if 'Unidade' in df.columns:
+                unidades = ['Todas'] + sorted(df['Unidade'].unique().tolist())
+                unidade_selecionada = st.selectbox("Unidade Hospitalar", unidades)
+                if unidade_selecionada != 'Todas':
+                    df = df[df['Unidade'] == unidade_selecionada]
+        except Exception as e:
+            st.error(f"Erro ao carregar o arquivo: {str(e)}")
+            df = None
 
-    st.subheader("Resumo estatístico")
-    st.dataframe(df.describe(include='all').T, use_container_width=True)
+# Conteúdo principal
+if arquivo and df is not None:
+    # Métricas principais
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric("Total de Casos", len(df))
+    
+    with col2:
+        if 'Bactéria' in df.columns:
+            st.metric("Bactérias Únicas", df['Bactéria'].nunique())
+    
+    with col3:
+        if 'Unidade' in df.columns:
+            st.metric("Unidades Afetadas", df['Unidade'].nunique())
+    
+    with col4:
+        if 'Tempo_Internacao' in df.columns:
+            st.metric("Média de Internação", f"{df['Tempo_Internacao'].mean():.1f} dias")
 
-    # Dashboard 1: Histograma do Tempo de Internação
-    st.subheader("Histograma do Tempo de Internação")
-    if 'Tempo_Internacao' in df.columns:
-        col1, col2 = st.columns([2, 1])
-        with col1:
-            fig1, ax1 = plt.subplots(figsize=(7, 3))
-            ax1.hist(df['Tempo_Internacao'].dropna(), bins=20, color="#222", alpha=0.8)
-            ax1.set_xlabel('Tempo de Internação (dias)')
-            ax1.set_ylabel('Frequência')
-            ax1.grid(axis='y', linestyle='--', alpha=0.3)
-            st.pyplot(fig1)
-        with col2:
-            st.metric("Média", f"{df['Tempo_Internacao'].mean():.1f} dias")
-            st.metric("Mediana", f"{df['Tempo_Internacao'].median():.1f} dias")
-            st.metric("Máximo", f"{df['Tempo_Internacao'].max():.0f} dias")
-    else:
-        st.warning("Coluna 'Tempo_Internacao' não encontrada.")
-
-    # Dashboard 2: Número de surtos por bactéria
-    st.subheader("Número de surtos por bactéria")
-    if 'Bactéria' in df.columns:
-        contagem_bact = df['Bactéria'].dropna().value_counts()
-        fig2, ax2 = plt.subplots(figsize=(8, 3.5))
-        ax2.barh(contagem_bact.index, contagem_bact.values, color="#444", alpha=0.8)
-        ax2.set_xlabel('Número de surtos')
-        ax2.set_ylabel('Bactéria')
-        ax2.grid(axis='x', linestyle='--', alpha=0.2)
-        st.pyplot(fig2)
-    else:
-        st.warning("Coluna 'Bactéria' não encontrada.")
-
-    # Dashboard 3: Casos por unidade hospitalar
-    st.subheader("Casos por unidade hospitalar")
-    if 'Unidade' in df.columns:
-        casos_unidade = df['Unidade'].dropna().value_counts()
-        fig3, ax3 = plt.subplots(figsize=(8, 3.5))
-        ax3.barh(casos_unidade.index, casos_unidade.values, color="#888", alpha=0.8)
-        ax3.set_xlabel('Número de casos')
-        ax3.set_ylabel('Unidade Hospitalar')
-        ax3.grid(axis='x', linestyle='--', alpha=0.2)
-        st.pyplot(fig3)
-    else:
-        st.warning("Coluna 'Unidade' não encontrada.")
-
-    # Dashboard 4: Evolução dos casos ao longo do tempo
-    st.subheader("Evolução dos casos ao longo do tempo")
+    # Alertas
+    st.markdown("### 🚨 Sistema de Alertas")
+    alertas = []
+    
     if 'Data_Coleta' in df.columns:
-        df['Data_Coleta'] = pd.to_datetime(df['Data_Coleta'], errors='coerce')
-        casos_tempo = df.groupby('Data_Coleta').size().reset_index(name='Casos')
-        casos_tempo = casos_tempo.sort_values('Data_Coleta')
-        fig4, ax4 = plt.subplots(figsize=(10, 3.5))
-        ax4.plot(casos_tempo['Data_Coleta'], casos_tempo['Casos'], marker='o', color="#222")
-        ax4.set_xlabel('Data da Coleta')
-        ax4.set_ylabel('Número de casos')
-        ax4.grid(axis='y', linestyle='--', alpha=0.2)
-        plt.xticks(rotation=45)
-        st.pyplot(fig4)
+        casos_ultimos_7_dias = df[df['Data_Coleta'] >= (datetime.now() - timedelta(days=7))].shape[0]
+        if casos_ultimos_7_dias > 10:
+            alertas.append(f"⚠️ Alerta: {casos_ultimos_7_dias} casos nos últimos 7 dias!")
+    
+    if 'Bactéria' in df.columns:
+        for bacteria in df['Bactéria'].unique():
+            casos_bacteria = df[df['Bactéria'] == bacteria].shape[0]
+            if casos_bacteria > 5:
+                alertas.append(f"⚠️ Alerta: {casos_bacteria} casos de {bacteria}!")
+    
+    if alertas:
+        for alerta in alertas:
+            st.warning(alerta)
     else:
-        st.warning("Coluna 'Data_Coleta' não encontrada.")
+        st.success("✅ Nenhum alerta ativo no momento.")
+
+    # Visualizações
+    st.markdown("### 📊 Visualizações")
+    
+    # Gráfico de evolução temporal
+    if 'Data_Coleta' in df.columns:
+        st.subheader("Evolução dos Casos")
+        casos_diarios = df.groupby('Data_Coleta').size().reset_index(name='Casos')
+        fig = px.line(casos_diarios, x='Data_Coleta', y='Casos',
+                     title='Evolução dos Casos ao Longo do Tempo')
+        st.plotly_chart(fig, use_container_width=True)
+    
+    # Distribuição por bactéria e unidade
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if 'Bactéria' in df.columns:
+            st.subheader("Distribuição por Bactéria")
+            fig = px.pie(df, names='Bactéria', title='Proporção de Casos por Bactéria')
+            st.plotly_chart(fig, use_container_width=True)
+    
+    with col2:
+        if 'Unidade' in df.columns:
+            st.subheader("Casos por Unidade")
+            fig = px.bar(df['Unidade'].value_counts().reset_index(),
+                        x='index', y='Unidade',
+                        title='Número de Casos por Unidade Hospitalar')
+            st.plotly_chart(fig, use_container_width=True)
+    
+    # Mapa de calor de correlação
+    if 'Tempo_Internacao' in df.columns:
+        st.subheader("Análise de Correlação")
+        numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns
+        if len(numeric_cols) > 1:
+            corr = df[numeric_cols].corr()
+            fig = px.imshow(corr,
+                           title='Correlação entre Variáveis Numéricas',
+                           color_continuous_scale='RdBu')
+            st.plotly_chart(fig, use_container_width=True)
+    
+    # Exportação de relatório
+    st.markdown("### 📤 Exportação de Dados")
+    if st.button("Exportar Relatório"):
+        try:
+            buffer = BytesIO()
+            with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+                df.to_excel(writer, sheet_name='Dados', index=False)
+                
+                # Adicionar resumo estatístico
+                if 'Tempo_Internacao' in df.columns:
+                    df.describe().to_excel(writer, sheet_name='Estatísticas')
+                
+                # Adicionar contagem por bactéria
+                if 'Bactéria' in df.columns:
+                    df['Bactéria'].value_counts().to_excel(writer, sheet_name='Contagem_Bactérias')
+            
+            buffer.seek(0)
+            st.download_button(
+                label="Baixar Relatório Excel",
+                data=buffer,
+                file_name=f"relatorio_surtos_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+                mime="application/vnd.ms-excel"
+            )
+        except Exception as e:
+            st.error(f"Erro ao gerar relatório: {str(e)}")
+
+else:
+    st.info("👆 Por favor, faça upload de um arquivo Excel para começar.")
