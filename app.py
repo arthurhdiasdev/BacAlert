@@ -8,14 +8,14 @@ from io import BytesIO
 # Configuração da página
 st.set_page_config(
     page_title="BacAlert - Monitoramento de Surtos Bacterianos",
-    page_icon="🦠",
+    page_icon="assets/bacterias.png",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # Cabeçalho
-st.title("🦠 BacAlert - Monitoramento de Surtos Bacterianos")
-st.markdown("Sistema de monitoramento e alerta para surtos bacterianos em ambiente hospitalar.")
+st.title(" BacAlert - Monitoramento de Surtos Bacterianos")
+st.markdown("Sistema de monitoramento e alerta para surtos bacterianos em ambientes hospitalars.")
 
 # Sidebar para filtros e configurações
 with st.sidebar:
@@ -30,17 +30,17 @@ with st.sidebar:
             st.success("✅ Arquivo carregado com sucesso!")
             
             # Filtros
-            st.subheader("🔍 Filtros")
+            st.subheader("Filtros")
             
             # Filtro por data
             if 'Data_Coleta' in df.columns:
                 df['Data_Coleta'] = pd.to_datetime(df['Data_Coleta'], errors='coerce')
                 data_inicio = st.date_input(
-                    "📅 Data inicial",
+                    " Data inicial",
                     value=df['Data_Coleta'].min().date()
                 )
                 data_fim = st.date_input(
-                    "📅 Data final",
+                    " Data final",
                     value=df['Data_Coleta'].max().date()
                 )
                 df = df[(df['Data_Coleta'].dt.date >= data_inicio) & 
@@ -66,7 +66,7 @@ with st.sidebar:
 # Conteúdo principal
 if arquivo and df is not None:
     # Métricas principais
-    st.header("📊 Métricas Principais")
+    st.header("Métricas Principais")
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
@@ -85,13 +85,13 @@ if arquivo and df is not None:
             st.metric("Média de Internação", f"{df['Tempo_Internacao'].mean():.1f} dias")
 
     # Alertas
-    st.header("🚨 Sistema de Alertas")
+    st.header("🚨 Sistema de Alertas Bcaterianos")
     alertas = []
     
     if 'Data_Coleta' in df.columns:
         casos_ultimos_7_dias = df[df['Data_Coleta'] >= (datetime.now() - timedelta(days=7))].shape[0]
         if casos_ultimos_7_dias > 10:
-            alertas.append(f"⚠️ Alerta: {casos_ultimos_7_dias} casos nos últimos 7 dias!")
+            alertas.append(f"⚠️ Alerta: {casos_ultimos_7_dias} casos nos últimos 7 dias!") 
     
     if 'Bactéria' in df.columns:
         for bacteria in df['Bactéria'].unique():
@@ -127,7 +127,7 @@ if arquivo and df is not None:
     
     with col2:
         if 'Unidade' in df.columns:
-            st.subheader("🏥 Casos por Unidade")
+            st.subheader("Casos por Unidade")
             casos_unidade = df['Unidade'].value_counts().reset_index()
             casos_unidade.columns = ['Unidade', 'Casos']
             fig = px.bar(casos_unidade, x='Unidade', y='Casos',
@@ -135,7 +135,7 @@ if arquivo and df is not None:
             st.plotly_chart(fig, use_container_width=True)
     
     # Mapa de calor de correlação
-    if 'Tempo_Internacao' in df.columns:
+    if 'Tempo_Internacaot' in df.columns:
         st.subheader("📊 Análise de Correlação")
         numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns
         if len(numeric_cols) > 1:
