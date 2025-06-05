@@ -34,7 +34,6 @@ git clone [URL_DO_REPOSITÓRIO]
 ```bash
 pip install -r requirements.txt
 ```
-3. Baixe o Banco de dados de exemplo na pasta dados e insira na area indicada.
 
 ## Como Executar
 1. Navegue até a pasta do projeto:
@@ -50,6 +49,7 @@ streamlit run app.py
 3. Acesse o aplicativo no navegador:
 - URL Local: http://localhost:8501
 
+4. Baixe o Banco de dados de exemplo na pasta dados e insira na area indicada.
 ## Formato dos Dados
 O arquivo Excel deve conter as seguintes colunas:
 - `Data_Coleta`: Data da coleta do material
