@@ -34,6 +34,7 @@ git clone [URL_DO_REPOSITÓRIO]
 ```bash
 pip install -r requirements.txt
 ```
+3. Baixe o Banco de dados de exemplo na pasta dados e insira na area indicada.
 
 ## Como Executar
 1. Navegue até a pasta do projeto:
