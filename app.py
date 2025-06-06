@@ -85,7 +85,7 @@ if arquivo and df is not None:
             st.metric("Média de Internação", f"{df['Tempo_Internacao'].mean():.1f} dias")
 
     # Alertas
-    st.header("🚨 Sistema de Alertas Bcaterianos")
+    st.header("🚨 Sistema de Alertas Bacterianos")
     alertas = []
     
     if 'Data_Coleta' in df.columns:
