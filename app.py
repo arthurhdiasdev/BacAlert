@@ -121,7 +121,7 @@ if arquivo and df is not None:
     
     with col1:
         if 'Bactéria' in df.columns:
-            st.subheader("🦠 Distribuição por Bactéria")
+            st.subheader(" Distribuição por Bactéria")
             fig = px.pie(df, names='Bactéria', title='Proporção de Casos por Bactéria')
             st.plotly_chart(fig, use_container_width=True)
     
