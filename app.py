@@ -106,11 +106,11 @@ if arquivo and df is not None:
         st.success("✅ Nenhum alerta ativo no momento.")
 
     # Visualizações
-    st.header("📈 Visualizações")
+    st.header("Visualizações")
     
     # Gráfico de evolução temporal
     if 'Data_Coleta' in df.columns:
-        st.subheader("📅 Evolução dos Casos")
+        st.subheader("Evolução dos Casos")
         casos_diarios = df.groupby('Data_Coleta').size().reset_index(name='Casos')
         fig = px.line(casos_diarios, x='Data_Coleta', y='Casos',
                      title='Evolução dos Casos ao Longo do Tempo')
